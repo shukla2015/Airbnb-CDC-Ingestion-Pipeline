@@ -1,7 +1,7 @@
 # Airbnb-CDC-Ingestion-Pipeline
 Project Overview
 
-This project simulates an end-to-end data engineering pipeline for an Airbnb-like booking system. It combines batch and CDC-based ingestion to process customer and booking data into a cloud data warehouse using Azure services.
+This project simulates an end-to-end data engineering pipeline for an Airbnb-like booking system. It combines batch, real time and CDC-based ingestion to process customer and booking data into a cloud data warehouse using Azure services.
 
 # Tech Stack
 Python
