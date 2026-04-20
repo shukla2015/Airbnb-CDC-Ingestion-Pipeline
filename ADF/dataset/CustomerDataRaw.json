@@ -1,9 +1,15 @@
 {
 	"name": "CustomerDataRaw",
 	"properties": {
+		"description": "Customer Data in ADLS Storage.",
 		"linkedServiceName": {
 			"referenceName": "AzureDataLakeStorage1",
 			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"FileName": {
+				"type": "String"
+			}
 		},
 		"annotations": [],
 		"type": "DelimitedText",

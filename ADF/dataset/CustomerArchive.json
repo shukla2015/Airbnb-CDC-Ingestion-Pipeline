@@ -1,6 +1,7 @@
 {
 	"name": "CustomerArchive",
 	"properties": {
+		"description": "The files which are processed.",
 		"linkedServiceName": {
 			"referenceName": "AzureDataLakeStorage1",
 			"type": "LinkedServiceReference"

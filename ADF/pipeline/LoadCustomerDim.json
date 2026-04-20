@@ -1,0 +1,191 @@
+{
+	"name": "LoadCustomerDim",
+	"properties": {
+		"description": "This pipeline will fetch the metadata of ADLS customer raw data then iterate on individual files, perform copy activity into synapse customer dim table.",
+		"activities": [
+			{
+				"name": "GetMetadataCustomerData",
+				"description": "Get Metadata from ADLS customer raw data folder.",
+				"type": "GetMetadata",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "CustomerDataRaw",
+						"type": "DatasetReference"
+					},
+					"fieldList": [
+						"childItems"
+					],
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"enablePartitionDiscovery": false
+					},
+					"formatSettings": {
+						"type": "DelimitedTextReadSettings"
+					}
+				}
+			},
+			{
+				"name": "ForEachCustomerData",
+				"description": "Iterating on files, which we get from get metadata activity.",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "GetMetadataCustomerData",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('GetMetadataCustomerData').output.childItems",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "CheckCsvFile",
+							"description": "It will return if the item is csv file",
+							"type": "IfCondition",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"expression": {
+									"value": "@endswith(item().name, '.csv')",
+									"type": "Expression"
+								},
+								"ifTrueActivities": [
+									{
+										"name": "CopyIntoSynapseCustomer",
+										"description": "Copy csv file into Customer table",
+										"type": "Copy",
+										"dependsOn": [],
+										"policy": {
+											"timeout": "0.12:00:00",
+											"retry": 0,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"source": {
+												"type": "DelimitedTextSource",
+												"storeSettings": {
+													"type": "AzureBlobFSReadSettings",
+													"recursive": true,
+													"enablePartitionDiscovery": false
+												},
+												"formatSettings": {
+													"type": "DelimitedTextReadSettings"
+												}
+											},
+											"sink": {
+												"type": "SqlDWSink",
+												"writeBehavior": "Upsert",
+												"upsertSettings": {
+													"keys": [
+														"customer_id"
+													],
+													"interimSchemaName": ""
+												},
+												"sqlWriterUseTableLock": false
+											},
+											"enableStaging": false,
+											"translator": {
+												"type": "TabularTranslator",
+												"typeConversion": true,
+												"typeConversionSettings": {
+													"allowDataTruncation": true,
+													"treatBooleanAsNumber": false
+												}
+											}
+										},
+										"inputs": [
+											{
+												"referenceName": "CustomerDataRaw",
+												"type": "DatasetReference",
+												"parameters": {
+													"FileName": "@item.name"
+												}
+											}
+										],
+										"outputs": [
+											{
+												"referenceName": "BookingFactSynapse",
+												"type": "DatasetReference"
+											}
+										]
+									},
+									{
+										"name": "TempCount",
+										"description": "It will count how many file perform the operation.",
+										"type": "SetVariable",
+										"dependsOn": [],
+										"policy": {
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"variableName": "temp_file",
+											"value": {
+												"value": "@add(variables('Total_file'), 1)",
+												"type": "Expression"
+											}
+										}
+									},
+									{
+										"name": "FileCount",
+										"description": "It will count how many file perform the operation.",
+										"type": "SetVariable",
+										"dependsOn": [
+											{
+												"activity": "TempCount",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											}
+										],
+										"policy": {
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"variableName": "Total_file",
+											"value": {
+												"value": "@variables('temp_file')",
+												"type": "Expression"
+											}
+										}
+									}
+								]
+							}
+						}
+					]
+				}
+			}
+		],
+		"variables": {
+			"Total_file": {
+				"type": "Integer",
+				"defaultValue": 0
+			},
+			"temp_file": {
+				"type": "Integer",
+				"defaultValue": 0
+			}
+		},
+		"annotations": []
+	}
+}
