@@ -1,5 +1,5 @@
 {
-	"name": "CustomerDatRaw",
+	"name": "CustomerDataRaw",
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "AzureDataLakeStorage1",
