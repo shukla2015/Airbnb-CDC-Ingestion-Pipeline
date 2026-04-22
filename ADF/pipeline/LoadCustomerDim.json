@@ -67,7 +67,7 @@
 								"ifTrueActivities": [
 									{
 										"name": "CopyIntoSynapseCustomer",
-										"description": "Copy csv file into Customer table",
+										"description": "Copy Customer CSV file data into Customer Synapse table.",
 										"type": "Copy",
 										"dependsOn": [],
 										"policy": {
@@ -84,6 +84,11 @@
 												"storeSettings": {
 													"type": "AzureBlobFSReadSettings",
 													"recursive": true,
+													"wildcardFolderPath": "customer_raw_data",
+													"wildcardFileName": {
+														"value": "@item().name\n",
+														"type": "Expression"
+													},
 													"enablePartitionDiscovery": false
 												},
 												"formatSettings": {
@@ -114,10 +119,7 @@
 										"inputs": [
 											{
 												"referenceName": "CustomerDataRaw",
-												"type": "DatasetReference",
-												"parameters": {
-													"FileName": "@item.name"
-												}
+												"type": "DatasetReference"
 											}
 										],
 										"outputs": [
@@ -128,47 +130,15 @@
 										]
 									},
 									{
-										"name": "TempCount",
-										"description": "It will count how many file perform the operation.",
+										"name": "ShowFileName",
+										"description": "This Activity will tell you the file name in Iteration.",
 										"type": "SetVariable",
 										"dependsOn": [],
 										"policy": {
 											"secureOutput": false,
 											"secureInput": false
 										},
-										"userProperties": [],
-										"typeProperties": {
-											"variableName": "temp_file",
-											"value": {
-												"value": "@add(variables('Total_file'), 1)",
-												"type": "Expression"
-											}
-										}
-									},
-									{
-										"name": "FileCount",
-										"description": "It will count how many file perform the operation.",
-										"type": "SetVariable",
-										"dependsOn": [
-											{
-												"activity": "TempCount",
-												"dependencyConditions": [
-													"Succeeded"
-												]
-											}
-										],
-										"policy": {
-											"secureOutput": false,
-											"secureInput": false
-										},
-										"userProperties": [],
-										"typeProperties": {
-											"variableName": "Total_file",
-											"value": {
-												"value": "@variables('temp_file')",
-												"type": "Expression"
-											}
-										}
+										"userProperties": []
 									}
 								]
 							}
