@@ -67,7 +67,7 @@
 								"ifTrueActivities": [
 									{
 										"name": "CopyIntoSynapseCustomer",
-										"description": "Copy Customer CSV file data into Customer Synapse table.",
+										"description": "Copy Customer CSV file data in ADLS into Customer Synapse table.",
 										"type": "Copy",
 										"dependsOn": [],
 										"policy": {
@@ -77,13 +77,26 @@
 											"secureOutput": false,
 											"secureInput": false
 										},
-										"userProperties": [],
+										"userProperties": [
+											{
+												"name": "File_location",
+												"value": "airbnb_customer_data_raw_folder"
+											},
+											{
+												"name": "load_type",
+												"value": "one_by_one"
+											},
+											{
+												"name": "Sink_detail",
+												"value": "customer_dim_table_Synapse"
+											}
+										],
 										"typeProperties": {
 											"source": {
 												"type": "DelimitedTextSource",
 												"storeSettings": {
 													"type": "AzureBlobFSReadSettings",
-													"recursive": true,
+													"recursive": false,
 													"wildcardFolderPath": "customer_raw_data",
 													"wildcardFileName": {
 														"value": "@item().name\n",
@@ -130,15 +143,138 @@
 										]
 									},
 									{
-										"name": "ShowFileName",
-										"description": "This Activity will tell you the file name in Iteration.",
+										"name": "TempVariable",
+										"description": "Count the files.",
 										"type": "SetVariable",
-										"dependsOn": [],
+										"dependsOn": [
+											{
+												"activity": "CopyIntoSynapseCustomer",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											}
+										],
 										"policy": {
 											"secureOutput": false,
 											"secureInput": false
 										},
-										"userProperties": []
+										"userProperties": [],
+										"typeProperties": {
+											"variableName": "temp_file",
+											"value": {
+												"value": "@add(variables('Total_file'), 1)",
+												"type": "Expression"
+											}
+										}
+									},
+									{
+										"name": "Final_value_updation",
+										"description": "Assign the temp value in the final variable.",
+										"type": "SetVariable",
+										"dependsOn": [
+											{
+												"activity": "TempVariable",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											}
+										],
+										"policy": {
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"variableName": "Total_file",
+											"value": {
+												"value": "@variables('temp_file')",
+												"type": "Expression"
+											}
+										}
+									},
+									{
+										"name": "MoveCustomerArchiveFolder",
+										"description": "From customer raw data folder move into customer archive folder.",
+										"type": "Copy",
+										"dependsOn": [],
+										"policy": {
+											"timeout": "0.12:00:00",
+											"retry": 0,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"source": {
+												"type": "DelimitedTextSource",
+												"storeSettings": {
+													"type": "AzureBlobFSReadSettings",
+													"recursive": true,
+													"wildcardFolderPath": "customer_data_raw",
+													"wildcardFileName": {
+														"value": "@item().name",
+														"type": "Expression"
+													},
+													"enablePartitionDiscovery": false
+												},
+												"formatSettings": {
+													"type": "DelimitedTextReadSettings"
+												}
+											},
+											"sink": {
+												"type": "DelimitedTextSink",
+												"storeSettings": {
+													"type": "AzureBlobFSWriteSettings"
+												},
+												"formatSettings": {
+													"type": "DelimitedTextWriteSettings",
+													"quoteAllText": true,
+													"fileExtension": ".txt"
+												}
+											},
+											"enableStaging": false,
+											"translator": {
+												"type": "TabularTranslator",
+												"typeConversion": true,
+												"typeConversionSettings": {
+													"allowDataTruncation": true,
+													"treatBooleanAsNumber": false
+												}
+											}
+										},
+										"inputs": [
+											{
+												"referenceName": "CustomerDataRaw",
+												"type": "DatasetReference"
+											}
+										],
+										"outputs": [
+											{
+												"referenceName": "CustomerArchive",
+												"type": "DatasetReference"
+											}
+										]
+									},
+									{
+										"name": "Data flow1",
+										"type": "ExecuteDataFlow",
+										"dependsOn": [],
+										"policy": {
+											"timeout": "0.12:00:00",
+											"retry": 0,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"compute": {
+												"coreCount": 8,
+												"computeType": "General"
+											},
+											"traceLevel": "Fine"
+										}
 									}
 								]
 							}
