@@ -148,7 +148,7 @@
 										"type": "SetVariable",
 										"dependsOn": [
 											{
-												"activity": "CopyIntoSynapseCustomer",
+												"activity": "CopyCustomerData",
 												"dependencyConditions": [
 													"Succeeded"
 												]
@@ -193,10 +193,17 @@
 										}
 									},
 									{
-										"name": "MoveCustomerArchiveFolder",
-										"description": "From customer raw data folder move into customer archive folder.",
+										"name": "CopyCustomerData",
+										"description": "This activity copy all files from customer raw data folder into customer archive folder.",
 										"type": "Copy",
-										"dependsOn": [],
+										"dependsOn": [
+											{
+												"activity": "CopyIntoSynapseCustomer",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											}
+										],
 										"policy": {
 											"timeout": "0.12:00:00",
 											"retry": 0,
@@ -211,7 +218,7 @@
 												"storeSettings": {
 													"type": "AzureBlobFSReadSettings",
 													"recursive": true,
-													"wildcardFolderPath": "customer_data_raw",
+													"wildcardFolderPath": "customer_raw_data",
 													"wildcardFileName": {
 														"value": "@item().name",
 														"type": "Expression"
@@ -225,15 +232,18 @@
 											"sink": {
 												"type": "DelimitedTextSink",
 												"storeSettings": {
-													"type": "AzureBlobFSWriteSettings"
+													"type": "AzureBlobFSWriteSettings",
+													"copyBehavior": "FlattenHierarchy"
 												},
 												"formatSettings": {
 													"type": "DelimitedTextWriteSettings",
 													"quoteAllText": true,
-													"fileExtension": ".txt"
+													"fileExtension": ".csv"
 												}
 											},
 											"enableStaging": false,
+											"parallelCopies": 1,
+											"dataIntegrationUnits": 4,
 											"translator": {
 												"type": "TabularTranslator",
 												"typeConversion": true,
@@ -257,9 +267,17 @@
 										]
 									},
 									{
-										"name": "Data flow1",
-										"type": "ExecuteDataFlow",
-										"dependsOn": [],
+										"name": "DeleteActivity",
+										"description": "Delete files from customer raw data folder, after copying the data.",
+										"type": "Delete",
+										"dependsOn": [
+											{
+												"activity": "Final_value_updation",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											}
+										],
 										"policy": {
 											"timeout": "0.12:00:00",
 											"retry": 0,
@@ -269,17 +287,51 @@
 										},
 										"userProperties": [],
 										"typeProperties": {
-											"compute": {
-												"coreCount": 8,
-												"computeType": "General"
+											"dataset": {
+												"referenceName": "CustomerDataRaw",
+												"type": "DatasetReference"
 											},
-											"traceLevel": "Fine"
+											"enableLogging": true,
+											"storeSettings": {
+												"type": "AzureBlobFSReadSettings",
+												"recursive": false,
+												"wildcardFileName": {
+													"value": "@{item().name}",
+													"type": "Expression"
+												},
+												"enablePartitionDiscovery": false
+											}
 										}
 									}
 								]
 							}
 						}
 					]
+				}
+			},
+			{
+				"name": "Total_files",
+				"description": "Total files which performed upsert into azure synapse table.",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "ForEachCustomerData",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "Total_count_files",
+					"value": {
+						"value": "@variables('Total_file')",
+						"type": "Expression"
+					}
 				}
 			}
 		],
@@ -291,6 +343,9 @@
 			"temp_file": {
 				"type": "Integer",
 				"defaultValue": 0
+			},
+			"Total_count_files": {
+				"type": "String"
 			}
 		},
 		"annotations": []
