@@ -52,6 +52,7 @@
 						"value": "@activity('GetMetadataCustomerData').output.childItems",
 						"type": "Expression"
 					},
+					"isSequential": true,
 					"activities": [
 						{
 							"name": "CheckCsvFile",
