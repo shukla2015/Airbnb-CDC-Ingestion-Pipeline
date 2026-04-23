@@ -55,7 +55,7 @@
 					"activities": [
 						{
 							"name": "CheckCsvFile",
-							"description": "It will return if the item is csv file",
+							"description": "Condition True if the item is csv file, else False.",
 							"type": "IfCondition",
 							"dependsOn": [],
 							"userProperties": [],
