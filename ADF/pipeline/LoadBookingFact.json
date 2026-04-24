@@ -1,0 +1,7 @@
+{
+	"name": "LoadBookingFact",
+	"properties": {
+		"description": "Load Booking data from MongoDB Collection into Synapse Booking fact table. ",
+		"annotations": []
+	}
+}
