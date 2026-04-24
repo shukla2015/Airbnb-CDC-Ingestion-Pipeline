@@ -12,11 +12,31 @@
 					"name": "sourceBookingStage"
 				}
 			],
-			"sinks": [],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "BookingFactSynapse",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
 			"transformations": [
 				{
 					"name": "derivedColumns",
 					"description": "Deriving the new columns to ingest in booking fact synapse table."
+				},
+				{
+					"name": "selectRelevantColumn",
+					"description": "Select Relevant columns."
+				},
+				{
+					"name": "ModifyColumnsDataType",
+					"description": "Convert data type of existing columns."
+				},
+				{
+					"name": "AcceptedRecords",
+					"description": "Filter out records which have valid check out and check in date."
 				}
 			],
 			"scriptLines": [
@@ -24,8 +44,75 @@
 				"     validateSchema: false,",
 				"     ignoreNoFilesFound: false,",
 				"     format: 'parquet') ~> sourceBookingStage",
-				"sourceBookingStage derive(full_address = concat(city, \" \",country),",
-				"          column2 = ERROR_FUNCTION('')) ~> derivedColumns"
+				"AcceptedRecords@AcceptedRecords derive(full_address = concat(city, ' ', country),",
+				"          stay_duration = minus(toDate(check_out_date, 'yyyy-MM-dd'), toDate(check_in_date, 'yyyy-MM-dd')),",
+				"          booking_year = year(toTimestamp(booking_date, 'yyyy-MM-dd HH:mm:ss')),",
+				"          booking_month = month(toTimestamp(booking_date, 'yyyy-MM-dd HH:mm:ss'))) ~> derivedColumns",
+				"sourceBookingStage select(mapColumn(",
+				"          each(match(booking_id),",
+				"               booking_id = $$),",
+				"          each(match(property_id),",
+				"               property_id = $$),",
+				"          each(match(customer_id),",
+				"               customer_id = $$),",
+				"          each(match(owner_id),",
+				"               owner_id = $$),",
+				"          each(match(check_in_date),",
+				"               check_in_date = $$),",
+				"          each(match(check_out_date),",
+				"               check_out_date = $$),",
+				"          each(match(booking_date),",
+				"               booking_date = $$),",
+				"          each(match(amount),",
+				"               amount = $$),",
+				"          each(match(currency),",
+				"               currency = $$),",
+				"          each(match(property_location.city),",
+				"               city = $$),",
+				"          each(match(property_location.country),",
+				"               country = $$),",
+				"          each(match(timestamp),",
+				"               timestamp = $$)",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectRelevantColumn",
+				"selectRelevantColumn derive(check_in_date = toDate(check_in_date, 'yyyy-MM-dd'),",
+				"          check_out_date = toDate(check_out_date, 'yyyy-MM-dd'),",
+				"          booking_date = toTimestamp(booking_date, 'yyyy-MM-dd HH:mm:ss'),",
+				"          timestamp = toTimestamp(timestamp, 'yyyy-MM-dd HH:mm:ss')) ~> ModifyColumnsDataType",
+				"ModifyColumnsDataType split(check_out_date>=check_in_date,",
+				"     disjoint: false) ~> AcceptedRecords@(AcceptedRecords, BadRecords)",
+				"derivedColumns sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          customer_id as integer,",
+				"          first_name as string,",
+				"          last_name as string,",
+				"          email as string,",
+				"          phone_number as string,",
+				"          address as string,",
+				"          city as string,",
+				"          state as string,",
+				"          country as string,",
+				"          zip_code as string,",
+				"          signup_date as date,",
+				"          last_login as timestamp,",
+				"          total_bookings as integer,",
+				"          total_spent as decimal(10,2),",
+				"          preferred_language as string,",
+				"          referral_code as string,",
+				"          account_status as string",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:false,",
+				"     updateable:false,",
+				"     upsertable:true,",
+				"     format: 'table',",
+				"     staged: true,",
+				"     allowCopyCommand: true,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError') ~> sink1"
 			]
 		}
 	}
