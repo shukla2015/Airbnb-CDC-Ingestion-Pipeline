@@ -7,7 +7,14 @@
 				"name": "LoadingMongoDBData",
 				"description": "Loading Data from MongoDB Collection.",
 				"type": "Copy",
-				"dependsOn": [],
+				"dependsOn": [
+					{
+						"activity": "LookupInLastRunFile",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
 				"policy": {
 					"timeout": "0.12:00:00",
 					"retry": 0,
@@ -19,13 +26,35 @@
 				"typeProperties": {
 					"source": {
 						"type": "MongoDbAtlasSource",
-						"batchSize": 100
+						"batchSize": 100,
+						"filter": {
+							"value": "{\n    \"timestamp\":{\n        \"$gt\":{\n            \"$date\": \"@{activity('LookupInLastRunFile').output.firstRow.lastRunTime}\"\n        }\n    }\n}\n\n",
+							"type": "Expression"
+						}
 					},
-					"enableStaging": false
+					"sink": {
+						"type": "ParquetSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings",
+							"copyBehavior": "PreserveHierarchy"
+						},
+						"formatSettings": {
+							"type": "ParquetWriteSettings"
+						}
+					},
+					"enableStaging": false,
+					"parallelCopies": 1,
+					"dataIntegrationUnits": 4
 				},
 				"inputs": [
 					{
 						"referenceName": "BookingMongodb",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "BookingStageData",
 						"type": "DatasetReference"
 					}
 				]
@@ -51,7 +80,8 @@
 				}
 			},
 			{
-				"name": "Lookup1",
+				"name": "LookupInLastRunFile",
+				"description": "Fetch the last run field from json.",
 				"type": "Lookup",
 				"dependsOn": [],
 				"policy": {
@@ -61,7 +91,25 @@
 					"secureOutput": false,
 					"secureInput": false
 				},
-				"userProperties": []
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "JsonSource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": true,
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "JsonReadSettings"
+						}
+					},
+					"dataset": {
+						"referenceName": "Last_Run_File",
+						"type": "DatasetReference"
+					},
+					"firstRowOnly": true
+				}
 			}
 		],
 		"annotations": []

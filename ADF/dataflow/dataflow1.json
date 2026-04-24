@@ -5,14 +5,27 @@
 		"typeProperties": {
 			"sources": [
 				{
-					"name": "source1"
+					"dataset": {
+						"referenceName": "BookingStageData",
+						"type": "DatasetReference"
+					},
+					"name": "sourceBookingStage"
 				}
 			],
 			"sinks": [],
-			"transformations": [],
+			"transformations": [
+				{
+					"name": "derivedColumns",
+					"description": "Deriving the new columns to ingest in booking fact synapse table."
+				}
+			],
 			"scriptLines": [
 				"source(allowSchemaDrift: true,",
-				"     validateSchema: false) ~> source1"
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     format: 'parquet') ~> sourceBookingStage",
+				"sourceBookingStage derive(full_address = concat(city, \" \",country),",
+				"          column2 = ERROR_FUNCTION('')) ~> derivedColumns"
 			]
 		}
 	}

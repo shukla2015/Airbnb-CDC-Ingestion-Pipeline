@@ -1,0 +1,27 @@
+{
+	"name": "Last_Run_File",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureDataLakeStorage1",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Json",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": "last_run_file.json",
+				"folderPath": "last_run_data",
+				"fileSystem": "airbnb-data"
+			}
+		},
+		"schema": {
+			"type": "object",
+			"properties": {
+				"lastRunTime": {
+					"type": "string"
+				}
+			}
+		}
+	}
+}
