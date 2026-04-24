@@ -1,0 +1,21 @@
+{
+	"name": "BookingStageData",
+	"properties": {
+		"description": "Load Data From MongoDB collection in a Parquet format in the booking storage.",
+		"linkedServiceName": {
+			"referenceName": "AzureDataLakeStorage1",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Parquet",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"folderPath": "booking_stage",
+				"fileSystem": "airbnb-data"
+			},
+			"compressionCodec": "snappy"
+		},
+		"schema": []
+	}
+}
