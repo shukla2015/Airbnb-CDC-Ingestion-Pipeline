@@ -11,11 +11,61 @@
 		"typeProperties": {
 			"location": {
 				"type": "AzureBlobFSLocation",
+				"fileName": "dummy_data.parquet",
 				"folderPath": "booking_stage",
 				"fileSystem": "airbnb-data"
 			},
 			"compressionCodec": "snappy"
 		},
-		"schema": []
+		"schema": [
+			{
+				"name": "_id",
+				"type": "UTF8"
+			},
+			{
+				"name": "booking_id",
+				"type": "UTF8"
+			},
+			{
+				"name": "property_id",
+				"type": "UTF8"
+			},
+			{
+				"name": "customer_id",
+				"type": "INT64"
+			},
+			{
+				"name": "owner_id",
+				"type": "UTF8"
+			},
+			{
+				"name": "check_in_date",
+				"type": "TIMESTAMP_MICROS"
+			},
+			{
+				"name": "check_out_date",
+				"type": "TIMESTAMP_MICROS"
+			},
+			{
+				"name": "booking_date",
+				"type": "TIMESTAMP_MICROS"
+			},
+			{
+				"name": "amount",
+				"type": "DOUBLE"
+			},
+			{
+				"name": "currency",
+				"type": "UTF8"
+			},
+			{
+				"name": "property_location",
+				"type": "UTF8"
+			},
+			{
+				"name": "timestamp",
+				"type": "TIMESTAMP_MICROS"
+			}
+		]
 	}
 }
