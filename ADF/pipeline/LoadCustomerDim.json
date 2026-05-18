@@ -242,6 +242,13 @@
 												"referenceName": "CustomerDataRaw",
 												"type": "DatasetReference"
 											},
+											"logStorageSettings": {
+												"linkedServiceName": {
+													"referenceName": "AzureDataLakeStorage1",
+													"type": "LinkedServiceReference"
+												},
+												"path": "airbnb-data/logging_file"
+											},
 											"enableLogging": true,
 											"storeSettings": {
 												"type": "AzureBlobFSReadSettings",
