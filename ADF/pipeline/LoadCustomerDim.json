@@ -67,8 +67,8 @@
 								},
 								"ifTrueActivities": [
 									{
-										"name": "CopyIntoSynapseCustomer",
-										"description": "Copy Customer CSV file data in ADLS into Customer Synapse table.",
+										"name": "UpsertIntoSynapseCustomer",
+										"description": "Insert or Update Customer CSV file data from ADLS into Customer Synapse table.",
 										"type": "Copy",
 										"dependsOn": [],
 										"policy": {
@@ -144,62 +144,12 @@
 										]
 									},
 									{
-										"name": "TempVariable",
-										"description": "Count the files.",
-										"type": "SetVariable",
-										"dependsOn": [
-											{
-												"activity": "CopyCustomerData",
-												"dependencyConditions": [
-													"Succeeded"
-												]
-											}
-										],
-										"policy": {
-											"secureOutput": false,
-											"secureInput": false
-										},
-										"userProperties": [],
-										"typeProperties": {
-											"variableName": "temp_file",
-											"value": {
-												"value": "@add(variables('Total_file'), 1)",
-												"type": "Expression"
-											}
-										}
-									},
-									{
-										"name": "Final_value_updation",
-										"description": "Assign the temp value in the final variable.",
-										"type": "SetVariable",
-										"dependsOn": [
-											{
-												"activity": "TempVariable",
-												"dependencyConditions": [
-													"Succeeded"
-												]
-											}
-										],
-										"policy": {
-											"secureOutput": false,
-											"secureInput": false
-										},
-										"userProperties": [],
-										"typeProperties": {
-											"variableName": "Total_file",
-											"value": {
-												"value": "@variables('temp_file')",
-												"type": "Expression"
-											}
-										}
-									},
-									{
-										"name": "CopyCustomerData",
+										"name": "CopyToCustomerArchive",
 										"description": "This activity copy all files from customer raw data folder into customer archive folder.",
 										"type": "Copy",
 										"dependsOn": [
 											{
-												"activity": "CopyIntoSynapseCustomer",
+												"activity": "UpsertIntoSynapseCustomer",
 												"dependencyConditions": [
 													"Succeeded"
 												]
@@ -269,11 +219,11 @@
 									},
 									{
 										"name": "DeleteActivity",
-										"description": "Delete files from customer raw data folder, after copying the data.",
+										"description": "Delete Csv files from customer raw data folder, after performing copy files into customer archive folder.",
 										"type": "Delete",
 										"dependsOn": [
 											{
-												"activity": "Final_value_updation",
+												"activity": "IndividualFile",
 												"dependencyConditions": [
 													"Succeeded"
 												]
@@ -297,10 +247,35 @@
 												"type": "AzureBlobFSReadSettings",
 												"recursive": false,
 												"wildcardFileName": {
-													"value": "@{item().name}",
+													"value": "@item().name",
 													"type": "Expression"
 												},
 												"enablePartitionDiscovery": false
+											}
+										}
+									},
+									{
+										"name": "IndividualFile",
+										"description": "This Activity tells which files are processed.",
+										"type": "SetVariable",
+										"dependsOn": [
+											{
+												"activity": "CopyToCustomerArchive",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											}
+										],
+										"policy": {
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"variableName": "EachFile",
+											"value": {
+												"value": "@item().name",
+												"type": "Expression"
 											}
 										}
 									}
@@ -346,6 +321,9 @@
 				"defaultValue": 0
 			},
 			"Total_count_files": {
+				"type": "String"
+			},
+			"EachFile": {
 				"type": "String"
 			}
 		},
