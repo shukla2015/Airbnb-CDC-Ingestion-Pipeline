@@ -25,7 +25,7 @@
 						"referenceName": "BookingFactSynapse",
 						"type": "DatasetReference"
 					},
-					"name": "TargetSynapseSink",
+					"name": "SynapseFactWrite",
 					"rejectedDataLinkedService": {
 						"referenceName": "AzureDataLakeStorage1",
 						"type": "LinkedServiceReference"
@@ -191,16 +191,16 @@
 				"          timestamp as timestamp",
 				"     ),",
 				"     deletable:false,",
-				"     insertable:false,",
-				"     updateable:false,",
-				"     upsertable:true,",
+				"     insertable:true,",
+				"     updateable:true,",
+				"     upsertable:false,",
 				"     keys:['booking_id'],",
 				"     format: 'table',",
 				"     staged: true,",
 				"     allowCopyCommand: true,",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
-				"     errorHandlingOption: 'stopOnFirstError') ~> TargetSynapseSink"
+				"     errorHandlingOption: 'stopOnFirstError') ~> SynapseFactWrite"
 			]
 		}
 	}
