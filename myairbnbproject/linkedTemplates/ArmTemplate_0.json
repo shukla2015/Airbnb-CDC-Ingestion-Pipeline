@@ -708,7 +708,16 @@
 													"secureOutput": false,
 													"secureInput": false
 												},
-												"userProperties": [],
+												"userProperties": [
+													{
+														"name": "Source",
+														"value": "airbnb-data/customer_raw_data/"
+													},
+													{
+														"name": "Destination",
+														"value": "airbnb-data/customer_archive/"
+													}
+												],
 												"typeProperties": {
 													"source": {
 														"type": "DelimitedTextSource",
@@ -840,48 +849,12 @@
 								}
 							]
 						}
-					},
-					{
-						"name": "Total_files",
-						"description": "Total files which performed upsert into azure synapse table.",
-						"type": "SetVariable",
-						"dependsOn": [
-							{
-								"activity": "ForEachCustomerData",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"policy": {
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"variableName": "Total_count_files",
-							"value": {
-								"value": "@variables('Total_file')",
-								"type": "Expression"
-							}
-						}
 					}
 				],
 				"policy": {
 					"elapsedTimeMetric": {}
 				},
 				"variables": {
-					"Total_file": {
-						"type": "Integer",
-						"defaultValue": 0
-					},
-					"temp_file": {
-						"type": "Integer",
-						"defaultValue": 0
-					},
-					"Total_count_files": {
-						"type": "String"
-					},
 					"EachFile": {
 						"type": "String"
 					}
