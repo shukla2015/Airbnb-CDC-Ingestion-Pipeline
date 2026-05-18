@@ -116,6 +116,13 @@
 						"referenceName": "TransformDataToSynapse",
 						"type": "DataFlowReference"
 					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "AzureDataLakeStorage1",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "airbnb-data/Synapse-data"
+					},
 					"compute": {
 						"coreCount": 8,
 						"computeType": "General"
