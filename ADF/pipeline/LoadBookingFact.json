@@ -28,7 +28,7 @@
 						"type": "MongoDbAtlasSource",
 						"batchSize": 100,
 						"filter": {
-							"value": "{\n    \"timestamp\":{\n        \"$gt\":{\n            \"$date\": \"@{activity('LookupInLastRunFile').output.firstRow.lastRunTime}\"\n        }\n    }\n}\n\n",
+							"value": "{\n    \"timestamp\":{\n        \"$gt\":\"@{activity('LookupInLastRunFile').output.firstRow.lastRunTime}\"\n        }\n}\n\n",
 							"type": "Expression"
 						}
 					},

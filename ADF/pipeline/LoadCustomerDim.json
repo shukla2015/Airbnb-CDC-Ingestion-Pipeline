@@ -123,6 +123,214 @@
 											"enableStaging": false,
 											"translator": {
 												"type": "TabularTranslator",
+												"mappings": [
+													{
+														"source": {
+															"name": "customer_id",
+															"type": "String",
+															"physicalType": "String"
+														},
+														"sink": {
+															"name": "customer_id",
+															"type": "Int32",
+															"physicalType": "int"
+														}
+													},
+													{
+														"source": {
+															"name": "first_name",
+															"type": "String",
+															"physicalType": "String"
+														},
+														"sink": {
+															"name": "first_name",
+															"type": "String",
+															"physicalType": "nvarchar"
+														}
+													},
+													{
+														"source": {
+															"name": "last_name",
+															"type": "String",
+															"physicalType": "String"
+														},
+														"sink": {
+															"name": "last_name",
+															"type": "String",
+															"physicalType": "nvarchar"
+														}
+													},
+													{
+														"source": {
+															"name": "email",
+															"type": "String",
+															"physicalType": "String"
+														},
+														"sink": {
+															"name": "email",
+															"type": "String",
+															"physicalType": "nvarchar"
+														}
+													},
+													{
+														"source": {
+															"name": "phone_number",
+															"type": "String",
+															"physicalType": "String"
+														},
+														"sink": {
+															"name": "phone_number",
+															"type": "String",
+															"physicalType": "nvarchar"
+														}
+													},
+													{
+														"source": {
+															"name": "address",
+															"type": "String",
+															"physicalType": "String"
+														},
+														"sink": {
+															"name": "address",
+															"type": "String",
+															"physicalType": "nvarchar"
+														}
+													},
+													{
+														"source": {
+															"name": "city",
+															"type": "String",
+															"physicalType": "String"
+														},
+														"sink": {
+															"name": "city",
+															"type": "String",
+															"physicalType": "nvarchar"
+														}
+													},
+													{
+														"source": {
+															"name": "state",
+															"type": "String",
+															"physicalType": "String"
+														},
+														"sink": {
+															"name": "state",
+															"type": "String",
+															"physicalType": "nvarchar"
+														}
+													},
+													{
+														"source": {
+															"name": "country",
+															"type": "String",
+															"physicalType": "String"
+														},
+														"sink": {
+															"name": "country",
+															"type": "String",
+															"physicalType": "nvarchar"
+														}
+													},
+													{
+														"source": {
+															"name": "zip_code",
+															"type": "String",
+															"physicalType": "String"
+														},
+														"sink": {
+															"name": "zip_code",
+															"type": "String",
+															"physicalType": "nvarchar"
+														}
+													},
+													{
+														"source": {
+															"name": "signup_date",
+															"type": "String",
+															"physicalType": "String"
+														},
+														"sink": {
+															"name": "signup_date",
+															"type": "Date",
+															"physicalType": "date"
+														}
+													},
+													{
+														"source": {
+															"name": "last_login",
+															"type": "String",
+															"physicalType": "String"
+														},
+														"sink": {
+															"name": "last_login",
+															"type": "DateTime",
+															"physicalType": "datetime"
+														}
+													},
+													{
+														"source": {
+															"name": "total_bookings",
+															"type": "String",
+															"physicalType": "String"
+														},
+														"sink": {
+															"name": "total_bookings",
+															"type": "Int32",
+															"physicalType": "int"
+														}
+													},
+													{
+														"source": {
+															"name": "total_spent",
+															"type": "String",
+															"physicalType": "String"
+														},
+														"sink": {
+															"name": "total_spent",
+															"type": "Decimal",
+															"physicalType": "decimal",
+															"scale": 2,
+															"precision": 10
+														}
+													},
+													{
+														"source": {
+															"name": "preferred_language",
+															"type": "String",
+															"physicalType": "String"
+														},
+														"sink": {
+															"name": "preferred_language",
+															"type": "String",
+															"physicalType": "nvarchar"
+														}
+													},
+													{
+														"source": {
+															"name": "referral_code",
+															"type": "String",
+															"physicalType": "String"
+														},
+														"sink": {
+															"name": "referral_code",
+															"type": "String",
+															"physicalType": "nvarchar"
+														}
+													},
+													{
+														"source": {
+															"name": "account_status",
+															"type": "String",
+															"physicalType": "String"
+														},
+														"sink": {
+															"name": "account_status",
+															"type": "String",
+															"physicalType": "nvarchar"
+														}
+													}
+												],
 												"typeConversion": true,
 												"typeConversionSettings": {
 													"allowDataTruncation": true,
@@ -138,7 +346,7 @@
 										],
 										"outputs": [
 											{
-												"referenceName": "BookingFactSynapse",
+												"referenceName": "CustomerDataSynapse",
 												"type": "DatasetReference"
 											}
 										]

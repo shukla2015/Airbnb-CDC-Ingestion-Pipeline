@@ -108,7 +108,7 @@
 				"     format: 'table',",
 				"     staged: true) ~> SynapseForLookup",
 				"AcceptedRecords@AcceptedRecords derive(full_address = concatWS(\" \", parse_property_location.city, parse_property_location.country),",
-				"          stay_duration = (toTimestamp(check_out_date) - toTimestamp(check_in_date)) / 86400000000,",
+				"          stay_duration = (toTimestamp(check_out_date) - toTimestamp(check_in_date)) / 86400000000L,",
 				"          booking_year = year(booking_date),",
 				"          booking_month = month(booking_date),",
 				"          city = parse_property_location.city,",
