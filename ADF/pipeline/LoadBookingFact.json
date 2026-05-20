@@ -22,7 +22,16 @@
 					"secureOutput": false,
 					"secureInput": false
 				},
-				"userProperties": [],
+				"userProperties": [
+					{
+						"name": "Source",
+						"value": "Bookings"
+					},
+					{
+						"name": "Destination",
+						"value": "airbnb-data/booking_stage/"
+					}
+				],
 				"typeProperties": {
 					"source": {
 						"type": "MongoDbAtlasSource",
