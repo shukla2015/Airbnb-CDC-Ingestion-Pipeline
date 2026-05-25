@@ -4,71 +4,6 @@
 		"description": "Load Booking data from MongoDB Collection into Synapse Booking fact table. ",
 		"activities": [
 			{
-				"name": "LoadingMongoDBData",
-				"description": "Loading Data from MongoDB Collection.",
-				"type": "Copy",
-				"dependsOn": [
-					{
-						"activity": "LookupInLastRunFile",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
-				"policy": {
-					"timeout": "0.12:00:00",
-					"retry": 0,
-					"retryIntervalInSeconds": 30,
-					"secureOutput": false,
-					"secureInput": false
-				},
-				"userProperties": [
-					{
-						"name": "Source",
-						"value": "Bookings"
-					},
-					{
-						"name": "Destination",
-						"value": "airbnb-data/booking_stage/"
-					}
-				],
-				"typeProperties": {
-					"source": {
-						"type": "MongoDbAtlasSource",
-						"batchSize": 100,
-						"filter": {
-							"value": "{\n    \"timestamp\": { \"$gt\": \"@{activity('LookupInLastRunFile').output.firstRow.lastRunTime}\" }\n}\n\n",
-							"type": "Expression"
-						}
-					},
-					"sink": {
-						"type": "JsonSink",
-						"storeSettings": {
-							"type": "AzureBlobFSWriteSettings",
-							"copyBehavior": "PreserveHierarchy"
-						},
-						"formatSettings": {
-							"type": "JsonWriteSettings"
-						}
-					},
-					"enableStaging": false,
-					"parallelCopies": 1,
-					"dataIntegrationUnits": 4
-				},
-				"inputs": [
-					{
-						"referenceName": "BookingMongodb",
-						"type": "DatasetReference"
-					}
-				],
-				"outputs": [
-					{
-						"referenceName": "MongoToAdlsStage",
-						"type": "DatasetReference"
-					}
-				]
-			},
-			{
 				"name": "LookupInLastRunFile",
 				"description": "Fetch the last run field from json.",
 				"type": "Lookup",
@@ -106,7 +41,7 @@
 				"type": "ExecuteDataFlow",
 				"dependsOn": [
 					{
-						"activity": "LoadingMongoDBData",
+						"activity": "LoadingToMongoDB",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -165,8 +100,99 @@
 					"referenceName": "AzureSynapseAnalytics1",
 					"type": "LinkedServiceReference"
 				}
+			},
+			{
+				"name": "LoadingToMongoDB",
+				"description": "Loading Data from MongoDB Collection.",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "LookupInLastRunFile",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "MongoDbAtlasSource",
+						"batchSize": 100,
+						"filter": {
+							"value": "{\n    \"timestamp\": {\"$gt\": \"@{activity('LookupInLastRunFile').output.firstRow.lastRunTime}\"}\n}",
+							"type": "Expression"
+						}
+					},
+					"sink": {
+						"type": "JsonSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings",
+							"copyBehavior": "PreserveHierarchy"
+						},
+						"formatSettings": {
+							"type": "JsonWriteSettings"
+						}
+					},
+					"enableStaging": false
+				},
+				"inputs": [
+					{
+						"referenceName": "BookingMongodb",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "MongoToAdlsStage",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "UpdateLastRunTime",
+				"type": "WebActivity",
+				"dependsOn": [
+					{
+						"activity": "TriggerStoredProcedure",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "PUT",
+					"headers": {
+						"x-ms-blob-type": "BlockBlob",
+						"Content-Type": "application/json"
+					},
+					"url": "https://airbnbstoragedata.blob.core.windows.net/airbnb-data/last_run_data/last_run_file.json",
+					"body": {
+						"value": "@concat('{\"lastRunTime\":\"', utcNow(), '\"}')",
+						"type": "Expression"
+					}
+				}
 			}
 		],
+		"variables": {
+			"currentRunTime": {
+				"type": "String"
+			}
+		},
 		"annotations": []
 	}
 }
