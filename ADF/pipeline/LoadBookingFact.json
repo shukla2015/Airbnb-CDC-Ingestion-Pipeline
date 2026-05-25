@@ -37,7 +37,7 @@
 						"type": "MongoDbAtlasSource",
 						"batchSize": 100,
 						"filter": {
-							"value": "{\n    \"timestamp\": { \"$gt\": \"@{activity('LookupInLastRunFile').output.firstRow.lastRunTime}\" }\n}\n",
+							"value": "{\n    \"timestamp\": { \"$gt\": \"@{activity('LookupInLastRunFile').output.firstRow.lastRunTime}\" }\n}\n\n",
 							"type": "Expression"
 						}
 					},
@@ -45,7 +45,7 @@
 						"type": "JsonSink",
 						"storeSettings": {
 							"type": "AzureBlobFSWriteSettings",
-							"copyBehavior": "FlattenHierarchy"
+							"copyBehavior": "PreserveHierarchy"
 						},
 						"formatSettings": {
 							"type": "JsonWriteSettings"
@@ -53,117 +53,7 @@
 					},
 					"enableStaging": false,
 					"parallelCopies": 1,
-					"dataIntegrationUnits": 4,
-					"translator": {
-						"type": "TabularTranslator",
-						"mappings": [
-							{
-								"source": {
-									"path": "$['_id']['$oid']"
-								},
-								"sink": {
-									"path": "$['_id']"
-								}
-							},
-							{
-								"source": {
-									"path": "$['booking_id']"
-								},
-								"sink": {
-									"path": "$['booking_id']"
-								}
-							},
-							{
-								"source": {
-									"path": "$['property_id']"
-								},
-								"sink": {
-									"path": "$['property_id']"
-								}
-							},
-							{
-								"source": {
-									"path": "$['customer_id']['$numberInt']"
-								},
-								"sink": {
-									"path": "$['customer_id']"
-								}
-							},
-							{
-								"source": {
-									"path": "$['owner_id']"
-								},
-								"sink": {
-									"path": "$['owner_id']"
-								}
-							},
-							{
-								"source": {
-									"path": "$['check_in_date']"
-								},
-								"sink": {
-									"path": "$['check_in_date']"
-								}
-							},
-							{
-								"source": {
-									"path": "$['check_out_date']"
-								},
-								"sink": {
-									"path": "$['check_out_date']"
-								}
-							},
-							{
-								"source": {
-									"path": "$['booking_date']"
-								},
-								"sink": {
-									"path": "$['booking_date']"
-								}
-							},
-							{
-								"source": {
-									"path": "$['amount']['$numberDouble']"
-								},
-								"sink": {
-									"path": "$['amount']"
-								}
-							},
-							{
-								"source": {
-									"path": "$['currency']"
-								},
-								"sink": {
-									"path": "$['currency']"
-								}
-							},
-							{
-								"source": {
-									"path": "$['property_location']['city']"
-								},
-								"sink": {
-									"path": "$['property_location']"
-								}
-							},
-							{
-								"source": {
-									"path": "$['property_location']['country']"
-								},
-								"sink": {
-									"path": "$['property_location']"
-								}
-							},
-							{
-								"source": {
-									"path": "$['timestamp']"
-								},
-								"sink": {
-									"path": "$['timestamp']"
-								}
-							}
-						],
-						"collectionReference": ""
-					}
+					"dataIntegrationUnits": 4
 				},
 				"inputs": [
 					{
