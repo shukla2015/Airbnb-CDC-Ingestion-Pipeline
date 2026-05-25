@@ -39,15 +39,15 @@
 			},
 			{
 				"name": "check_in_date",
-				"type": "TIMESTAMP_MICROS"
+				"type": "UTF8"
 			},
 			{
 				"name": "check_out_date",
-				"type": "TIMESTAMP_MICROS"
+				"type": "UTF8"
 			},
 			{
 				"name": "booking_date",
-				"type": "TIMESTAMP_MICROS"
+				"type": "UTF8"
 			},
 			{
 				"name": "amount",
@@ -63,7 +63,7 @@
 			},
 			{
 				"name": "timestamp",
-				"type": "TIMESTAMP_MICROS"
+				"type": "UTF8"
 			}
 		]
 	}

@@ -37,7 +37,7 @@
 						"type": "MongoDbAtlasSource",
 						"batchSize": 100,
 						"filter": {
-							"value": "{\n    \"timestamp\":{\n        \"$gt\":\"@{activity('LookupInLastRunFile').output.firstRow.lastRunTime}\"\n        }\n}\n\n",
+							"value": "[\n  {\n    \"$addFields\": {\n      \"_id\": { \"$toString\": \"$_id\" },\n      \"customer_id\": { \"$toInt\": \"$customer_id\" },\n      \"amount\": { \"$toDouble\": \"$amount\" },\n      \"property_location\": {\"$toString\": \"$property_location\"}\n    }\n  },\n  {\n    \"$match\": {\n      \"timestamp\": { \"$gt\": \"@{activity('LookupInLastRunFile').output.firstRow.lastRunTime}\" }\n    }\n  }\n]\n\n",
 							"type": "Expression"
 						}
 					},
