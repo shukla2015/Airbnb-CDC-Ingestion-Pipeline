@@ -6,7 +6,7 @@
 			"sources": [
 				{
 					"dataset": {
-						"referenceName": "BookingStageData",
+						"referenceName": "MongoToAdlsStage",
 						"type": "DatasetReference"
 					},
 					"name": "sourceBookingStage"
@@ -38,10 +38,6 @@
 					"description": "Deriving the new columns to ingest in booking fact synapse table."
 				},
 				{
-					"name": "ModifyColumnsDataType",
-					"description": "Convert data type of existing columns."
-				},
-				{
 					"name": "AcceptedRecords",
 					"description": "Conditionally distributed data based on columns check in date and check out date."
 				},
@@ -68,22 +64,22 @@
 			"scriptLines": [
 				"source(output(",
 				"          {_id} as string,",
-				"          booking_id as string,",
-				"          property_id as string,",
-				"          customer_id as long,",
-				"          owner_id as string,",
-				"          check_in_date as string,",
-				"          check_out_date as string,",
-				"          booking_date as string,",
 				"          amount as double,",
+				"          booking_date as date,",
+				"          booking_id as string,",
+				"          check_in_date as date,",
+				"          check_out_date as date,",
 				"          currency as string,",
+				"          customer_id as short,",
+				"          owner_id as string,",
+				"          property_id as string,",
 				"          property_location as string,",
-				"          timestamp as string",
+				"          timestamp as timestamp",
 				"     ),",
 				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     ignoreNoFilesFound: false,",
-				"     format: 'parquet') ~> sourceBookingStage",
+				"     documentForm: 'documentPerLine') ~> sourceBookingStage",
 				"source(output(",
 				"          booking_id as string,",
 				"          property_id as string,",
@@ -112,12 +108,8 @@
 				"          booking_year = year(booking_date),",
 				"          booking_month = month(booking_date),",
 				"          city = parse_property_location.city,",
-				"          country = parse_property_location.country,",
-				"          new_timestamp = toTimestamp(timestamp, \"yyyy-MM-dd HH:mm:ss\")) ~> derivedColumns",
-				"parseColumnInJson derive(check_in_date = toDate(check_in_date, \"yyyy-MM-dd\"),",
-				"          check_out_date = toDate(check_out_date, \"yyyy-MM-dd\"),",
-				"          booking_date = toDate(booking_date, \"yyyy-MM-dd\")) ~> ModifyColumnsDataType",
-				"ModifyColumnsDataType split(check_out_date>=check_in_date,",
+				"          country = parse_property_location.country) ~> derivedColumns",
+				"parseColumnInJson split(check_out_date>=check_in_date,",
 				"     disjoint: false) ~> AcceptedRecords@(AcceptedRecords, BadRecords)",
 				"LookupInSynapse alterRow(insertIf(isNull(SynapseForLookup@booking_id)),",
 				"     upsertIf(not(isNull(selectColumns@booking_id)))) ~> AlterRow",
@@ -141,7 +133,7 @@
 				"          stay_duration,",
 				"          booking_year,",
 				"          booking_month,",
-				"          timestamp = new_timestamp",
+				"          timestamp",
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> selectColumns",

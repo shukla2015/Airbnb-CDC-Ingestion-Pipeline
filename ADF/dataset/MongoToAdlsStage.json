@@ -1,0 +1,19 @@
+{
+	"name": "MongoToAdlsStage",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureDataLakeStorage1",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Json",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"folderPath": "booking_stage",
+				"fileSystem": "airbnb-data"
+			}
+		},
+		"schema": {}
+	}
+}
