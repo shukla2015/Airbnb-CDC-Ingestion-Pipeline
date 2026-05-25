@@ -154,38 +154,6 @@
 						"type": "DatasetReference"
 					}
 				]
-			},
-			{
-				"name": "UpdateLastRunTime",
-				"type": "WebActivity",
-				"dependsOn": [
-					{
-						"activity": "TriggerStoredProcedure",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
-				"policy": {
-					"timeout": "0.12:00:00",
-					"retry": 0,
-					"retryIntervalInSeconds": 30,
-					"secureOutput": false,
-					"secureInput": false
-				},
-				"userProperties": [],
-				"typeProperties": {
-					"method": "PUT",
-					"headers": {
-						"x-ms-blob-type": "BlockBlob",
-						"Content-Type": "application/json"
-					},
-					"url": "https://airbnbstoragedata.blob.core.windows.net/airbnb-data/last_run_data/last_run_file.json",
-					"body": {
-						"value": "@concat('{\"lastRunTime\":\"', utcNow(), '\"}')",
-						"type": "Expression"
-					}
-				}
 			}
 		],
 		"variables": {
