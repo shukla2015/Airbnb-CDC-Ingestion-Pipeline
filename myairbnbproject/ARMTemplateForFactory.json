@@ -167,8 +167,7 @@
 									"sourceBookingStage": {},
 									"SynapseForLookup": {},
 									"SynapseFactWrite": {}
-								},
-								"linkedServiceParameters": {}
+								}
 							},
 							"staging": {
 								"linkedService": {
@@ -266,38 +265,6 @@
 								"parameters": {}
 							}
 						]
-					},
-					{
-						"name": "UpdateLastRunTime",
-						"type": "WebActivity",
-						"dependsOn": [
-							{
-								"activity": "TriggerStoredProcedure",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"policy": {
-							"timeout": "0.12:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"method": "PUT",
-							"headers": {
-								"x-ms-blob-type": "BlockBlob",
-								"Content-Type": "application/json"
-							},
-							"url": "https://airbnbstoragedata.blob.core.windows.net/airbnb-data/last_run_data/last_run_file.json",
-							"body": {
-								"value": "@concat('{\"lastRunTime\":\"', utcNow(), '\"}')",
-								"type": "Expression"
-							}
-						}
 					}
 				],
 				"policy": {
@@ -1230,6 +1197,93 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/MongoToAdlsStage')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureDataLakeStorage1",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Json",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": "booking_stage",
+						"fileSystem": "airbnb-data"
+					}
+				},
+				"schema": {
+					"type": "object",
+					"properties": {
+						"_id": {
+							"type": "object",
+							"properties": {
+								"$oid": {
+									"type": "string"
+								}
+							}
+						},
+						"booking_id": {
+							"type": "string"
+						},
+						"property_id": {
+							"type": "string"
+						},
+						"customer_id": {
+							"type": "object",
+							"properties": {
+								"$numberInt": {
+									"type": "string"
+								}
+							}
+						},
+						"owner_id": {
+							"type": "string"
+						},
+						"check_in_date": {
+							"type": "string"
+						},
+						"check_out_date": {
+							"type": "string"
+						},
+						"booking_date": {
+							"type": "string"
+						},
+						"amount": {
+							"type": "object",
+							"properties": {
+								"$numberDouble": {
+									"type": "string"
+								}
+							}
+						},
+						"currency": {
+							"type": "string"
+						},
+						"property_location": {
+							"type": "object",
+							"properties": {
+								"city": {
+									"type": "string"
+								},
+								"country": {
+									"type": "string"
+								}
+							}
+						},
+						"timestamp": {
+							"type": "string"
+						}
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureDataLakeStorage1')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/AzureDataLakeStorage1')]",
 			"type": "Microsoft.DataFactory/factories/linkedServices",
 			"apiVersion": "2018-06-01",
@@ -1388,8 +1442,7 @@
 						"          booking_month = month(booking_date),",
 						"          city = property_location.city,",
 						"          country = property_location.country,",
-						"          customer_id = toInteger(customer_id.{$numberInt})\r",
-						",",
+						"          customer_id = toInteger(customer_id.{$numberInt}),",
 						"          amount = toFloat(amount.{$numberDouble})) ~> derivedColumns",
 						"sourceBookingStage split(check_out_date>=check_in_date,",
 						"     disjoint: false) ~> AcceptedRecords@(AcceptedRecords, BadRecords)",
@@ -1477,93 +1530,6 @@
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/MongoToAdlsStage')]",
 				"[concat(variables('factoryId'), '/datasets/BookingFactSynapse')]",
-				"[concat(variables('factoryId'), '/linkedServices/AzureDataLakeStorage1')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/MongoToAdlsStage')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "AzureDataLakeStorage1",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "Json",
-				"typeProperties": {
-					"location": {
-						"type": "AzureBlobFSLocation",
-						"folderPath": "booking_stage",
-						"fileSystem": "airbnb-data"
-					}
-				},
-				"schema": {
-					"type": "object",
-					"properties": {
-						"_id": {
-							"type": "object",
-							"properties": {
-								"$oid": {
-									"type": "string"
-								}
-							}
-						},
-						"booking_id": {
-							"type": "string"
-						},
-						"property_id": {
-							"type": "string"
-						},
-						"customer_id": {
-							"type": "object",
-							"properties": {
-								"$numberInt": {
-									"type": "string"
-								}
-							}
-						},
-						"owner_id": {
-							"type": "string"
-						},
-						"check_in_date": {
-							"type": "string"
-						},
-						"check_out_date": {
-							"type": "string"
-						},
-						"booking_date": {
-							"type": "string"
-						},
-						"amount": {
-							"type": "object",
-							"properties": {
-								"$numberDouble": {
-									"type": "string"
-								}
-							}
-						},
-						"currency": {
-							"type": "string"
-						},
-						"property_location": {
-							"type": "object",
-							"properties": {
-								"city": {
-									"type": "string"
-								},
-								"country": {
-									"type": "string"
-								}
-							}
-						},
-						"timestamp": {
-							"type": "string"
-						}
-					}
-				}
-			},
-			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/AzureDataLakeStorage1')]"
 			]
 		}
