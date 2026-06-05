@@ -1,0 +1,520 @@
+{
+	"name": "LoadCustomerDim",
+	"properties": {
+		"description": "This pipeline will fetch the metadata of ADLS customer raw data then iterate on individual files, perform copy activity into synapse customer dim table.",
+		"activities": [
+			{
+				"name": "GetMetadataCustomerData",
+				"description": "Get Metadata from ADLS customer raw data folder.",
+				"type": "GetMetadata",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "CustomerDataRaw",
+						"type": "DatasetReference"
+					},
+					"fieldList": [
+						"childItems"
+					],
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"recursive": true,
+						"enablePartitionDiscovery": false
+					},
+					"formatSettings": {
+						"type": "DelimitedTextReadSettings"
+					}
+				}
+			},
+			{
+				"name": "ForEachCustomerData",
+				"description": "Iterating on files, which we get from get metadata activity.",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "GetMetadataCustomerData",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('GetMetadataCustomerData').output.childItems",
+						"type": "Expression"
+					},
+					"isSequential": true,
+					"activities": [
+						{
+							"name": "CheckCsvFile",
+							"description": "Condition True if the item is csv file, else False.",
+							"type": "IfCondition",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"expression": {
+									"value": "@endswith(item().name, '.csv')",
+									"type": "Expression"
+								},
+								"ifTrueActivities": [
+									{
+										"name": "UpsertIntoSynapseCustomer",
+										"description": "Insert or Update Customer CSV file data from ADLS into Customer Synapse table.",
+										"type": "Copy",
+										"dependsOn": [],
+										"policy": {
+											"timeout": "0.12:00:00",
+											"retry": 0,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [
+											{
+												"name": "File_location",
+												"value": "airbnb_customer_data_raw_folder"
+											},
+											{
+												"name": "load_type",
+												"value": "one_by_one"
+											},
+											{
+												"name": "Sink_detail",
+												"value": "customer_dim_table_Synapse"
+											}
+										],
+										"typeProperties": {
+											"source": {
+												"type": "DelimitedTextSource",
+												"storeSettings": {
+													"type": "AzureBlobFSReadSettings",
+													"recursive": false,
+													"wildcardFolderPath": "customer_raw_data",
+													"wildcardFileName": {
+														"value": "@item().name\n",
+														"type": "Expression"
+													},
+													"enablePartitionDiscovery": false
+												},
+												"formatSettings": {
+													"type": "DelimitedTextReadSettings"
+												}
+											},
+											"sink": {
+												"type": "SqlDWSink",
+												"writeBehavior": "Upsert",
+												"upsertSettings": {
+													"keys": [
+														"customer_id"
+													],
+													"interimSchemaName": ""
+												},
+												"sqlWriterUseTableLock": false
+											},
+											"enableStaging": false,
+											"translator": {
+												"type": "TabularTranslator",
+												"mappings": [
+													{
+														"source": {
+															"name": "customer_id",
+															"type": "String",
+															"physicalType": "String"
+														},
+														"sink": {
+															"name": "customer_id",
+															"type": "Int32",
+															"physicalType": "int"
+														}
+													},
+													{
+														"source": {
+															"name": "first_name",
+															"type": "String",
+															"physicalType": "String"
+														},
+														"sink": {
+															"name": "first_name",
+															"type": "String",
+															"physicalType": "nvarchar"
+														}
+													},
+													{
+														"source": {
+															"name": "last_name",
+															"type": "String",
+															"physicalType": "String"
+														},
+														"sink": {
+															"name": "last_name",
+															"type": "String",
+															"physicalType": "nvarchar"
+														}
+													},
+													{
+														"source": {
+															"name": "email",
+															"type": "String",
+															"physicalType": "String"
+														},
+														"sink": {
+															"name": "email",
+															"type": "String",
+															"physicalType": "nvarchar"
+														}
+													},
+													{
+														"source": {
+															"name": "phone_number",
+															"type": "String",
+															"physicalType": "String"
+														},
+														"sink": {
+															"name": "phone_number",
+															"type": "String",
+															"physicalType": "nvarchar"
+														}
+													},
+													{
+														"source": {
+															"name": "address",
+															"type": "String",
+															"physicalType": "String"
+														},
+														"sink": {
+															"name": "address",
+															"type": "String",
+															"physicalType": "nvarchar"
+														}
+													},
+													{
+														"source": {
+															"name": "city",
+															"type": "String",
+															"physicalType": "String"
+														},
+														"sink": {
+															"name": "city",
+															"type": "String",
+															"physicalType": "nvarchar"
+														}
+													},
+													{
+														"source": {
+															"name": "state",
+															"type": "String",
+															"physicalType": "String"
+														},
+														"sink": {
+															"name": "state",
+															"type": "String",
+															"physicalType": "nvarchar"
+														}
+													},
+													{
+														"source": {
+															"name": "country",
+															"type": "String",
+															"physicalType": "String"
+														},
+														"sink": {
+															"name": "country",
+															"type": "String",
+															"physicalType": "nvarchar"
+														}
+													},
+													{
+														"source": {
+															"name": "zip_code",
+															"type": "String",
+															"physicalType": "String"
+														},
+														"sink": {
+															"name": "zip_code",
+															"type": "String",
+															"physicalType": "nvarchar"
+														}
+													},
+													{
+														"source": {
+															"name": "signup_date",
+															"type": "String",
+															"physicalType": "String"
+														},
+														"sink": {
+															"name": "signup_date",
+															"type": "Date",
+															"physicalType": "date"
+														}
+													},
+													{
+														"source": {
+															"name": "last_login",
+															"type": "String",
+															"physicalType": "String"
+														},
+														"sink": {
+															"name": "last_login",
+															"type": "DateTime",
+															"physicalType": "datetime"
+														}
+													},
+													{
+														"source": {
+															"name": "total_bookings",
+															"type": "String",
+															"physicalType": "String"
+														},
+														"sink": {
+															"name": "total_bookings",
+															"type": "Int32",
+															"physicalType": "int"
+														}
+													},
+													{
+														"source": {
+															"name": "total_spent",
+															"type": "String",
+															"physicalType": "String"
+														},
+														"sink": {
+															"name": "total_spent",
+															"type": "Decimal",
+															"physicalType": "decimal",
+															"scale": 2,
+															"precision": 10
+														}
+													},
+													{
+														"source": {
+															"name": "preferred_language",
+															"type": "String",
+															"physicalType": "String"
+														},
+														"sink": {
+															"name": "preferred_language",
+															"type": "String",
+															"physicalType": "nvarchar"
+														}
+													},
+													{
+														"source": {
+															"name": "referral_code",
+															"type": "String",
+															"physicalType": "String"
+														},
+														"sink": {
+															"name": "referral_code",
+															"type": "String",
+															"physicalType": "nvarchar"
+														}
+													},
+													{
+														"source": {
+															"name": "account_status",
+															"type": "String",
+															"physicalType": "String"
+														},
+														"sink": {
+															"name": "account_status",
+															"type": "String",
+															"physicalType": "nvarchar"
+														}
+													}
+												],
+												"typeConversion": true,
+												"typeConversionSettings": {
+													"allowDataTruncation": true,
+													"treatBooleanAsNumber": false
+												}
+											}
+										},
+										"inputs": [
+											{
+												"referenceName": "CustomerDataRaw",
+												"type": "DatasetReference"
+											}
+										],
+										"outputs": [
+											{
+												"referenceName": "CustomerDataSynapse",
+												"type": "DatasetReference"
+											}
+										]
+									},
+									{
+										"name": "CopyToCustomerArchive",
+										"description": "This activity copy all files from customer raw data folder into customer archive folder.",
+										"type": "Copy",
+										"dependsOn": [
+											{
+												"activity": "UpsertIntoSynapseCustomer",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											}
+										],
+										"policy": {
+											"timeout": "0.12:00:00",
+											"retry": 0,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [
+											{
+												"name": "Source",
+												"value": "airbnb-data/customer_raw_data/"
+											},
+											{
+												"name": "Destination",
+												"value": "airbnb-data/customer_archive/"
+											}
+										],
+										"typeProperties": {
+											"source": {
+												"type": "DelimitedTextSource",
+												"storeSettings": {
+													"type": "AzureBlobFSReadSettings",
+													"recursive": true,
+													"wildcardFolderPath": "customer_raw_data",
+													"wildcardFileName": {
+														"value": "@item().name",
+														"type": "Expression"
+													},
+													"enablePartitionDiscovery": false
+												},
+												"formatSettings": {
+													"type": "DelimitedTextReadSettings"
+												}
+											},
+											"sink": {
+												"type": "DelimitedTextSink",
+												"storeSettings": {
+													"type": "AzureBlobFSWriteSettings",
+													"copyBehavior": "FlattenHierarchy"
+												},
+												"formatSettings": {
+													"type": "DelimitedTextWriteSettings",
+													"quoteAllText": true,
+													"fileExtension": ".csv"
+												}
+											},
+											"enableStaging": false,
+											"parallelCopies": 1,
+											"dataIntegrationUnits": 4,
+											"translator": {
+												"type": "TabularTranslator",
+												"typeConversion": true,
+												"typeConversionSettings": {
+													"allowDataTruncation": true,
+													"treatBooleanAsNumber": false
+												}
+											}
+										},
+										"inputs": [
+											{
+												"referenceName": "CustomerDataRaw",
+												"type": "DatasetReference"
+											}
+										],
+										"outputs": [
+											{
+												"referenceName": "CustomerArchive",
+												"type": "DatasetReference"
+											}
+										]
+									},
+									{
+										"name": "DeleteActivity",
+										"description": "Delete Csv files from customer raw data folder, after performing copy files into customer archive folder.",
+										"type": "Delete",
+										"dependsOn": [
+											{
+												"activity": "IndividualFile",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											}
+										],
+										"policy": {
+											"timeout": "0.12:00:00",
+											"retry": 0,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"dataset": {
+												"referenceName": "CustomerDataRaw",
+												"type": "DatasetReference"
+											},
+											"logStorageSettings": {
+												"linkedServiceName": {
+													"referenceName": "AzureDataLakeStorage1",
+													"type": "LinkedServiceReference"
+												},
+												"path": "airbnb-data/logging_file"
+											},
+											"enableLogging": true,
+											"storeSettings": {
+												"type": "AzureBlobFSReadSettings",
+												"recursive": false,
+												"wildcardFileName": {
+													"value": "@item().name",
+													"type": "Expression"
+												},
+												"enablePartitionDiscovery": false
+											}
+										}
+									},
+									{
+										"name": "IndividualFile",
+										"description": "This Activity tells which files are processed.",
+										"type": "SetVariable",
+										"dependsOn": [
+											{
+												"activity": "CopyToCustomerArchive",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											}
+										],
+										"policy": {
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"variableName": "EachFile",
+											"value": {
+												"value": "@item().name",
+												"type": "Expression"
+											}
+										}
+									}
+								]
+							}
+						}
+					]
+				}
+			}
+		],
+		"variables": {
+			"EachFile": {
+				"type": "String"
+			}
+		},
+		"annotations": []
+	}
+}
